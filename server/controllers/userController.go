@@ -1,29 +1,24 @@
 package controllers
 
 import (
-  "github.com/gin-gonic/gin"
-  "github.com/dgrijalva/jwt-go"  
-  "fmt"
-  "gymgo.com/m/models"
-  "net/http"
-  "time"
-  "os"
+	"fmt"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"gymgo.com/m/models"
 )
 
-var user = models.User{
-  ID: 1,
-  Name: "name",
-  Email: "email@email.com",
-  Password: "password",
-}
-
+// CreateToken creates a JWT token
 func CreateToken(userid uint) (string, error) {
-	jwt_secret, exists := os.LookupEnv("JWT_SECRET")
+	jwtSecret, exists := os.LookupEnv("JWT_SECRET")
 
-    if !exists {
-	  fmt.Println(".ENV not found")
+	if !exists {
+		fmt.Println(".ENV not found")
 	}
-	
+
 	var err error
 
 	tokenClaims := jwt.MapClaims{}
@@ -31,31 +26,32 @@ func CreateToken(userid uint) (string, error) {
 	tokenClaims["user_id"] = userid
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-	tokenString, err := token.SignedString([]byte(jwt_secret))
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 
 	if err != nil {
-	   return "", err
+		return "", err
 	}
 
 	return tokenString, nil
 }
 
-func VerifyToken(c *gin.Context) (bool){
+// VerifyToken verifies a users JWT token
+func VerifyToken(c *gin.Context) bool {
 	cookie, err := c.Cookie("token")
 
 	if err != nil {
-	  c.JSON(404, "Validation cookie not found")
-	  return false
+		c.JSON(404, "Validation cookie not found")
+		return false
 	}
-	
+
 	claims := jwt.MapClaims{}
-	jwt_secret, exists := os.LookupEnv("JWT_SECRET")
-  
+	jwtSecret, exists := os.LookupEnv("JWT_SECRET")
+
 	if !exists {
-	   c.JSON(404, ".ENV not found")
+		c.JSON(404, ".ENV not found")
 	}
 	tkn, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(jwt_secret), nil
+		return []byte(jwtSecret), nil
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
@@ -74,28 +70,60 @@ func VerifyToken(c *gin.Context) (bool){
 	return true
 }
 
+// LoginUser checks passed parameters against user in db to log in
 func LoginUser(c *gin.Context) {
-	var u models.User
-	if err := c.ShouldBindJSON(&u); err != nil {
-	   c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-	   return
+	var jsonData models.User
+	if c.BindJSON(&jsonData) != nil {
+		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		return
 	}
 
-	if user.Email != u.Email|| user.Password != u.Password {
-	   c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-	   return
+	tempUser := models.User{}
+	res := models.DB.Select("*").Where("email = ?", jsonData.Email).First(&tempUser)
+
+	if res.RowsAffected == 0 {
+		c.JSON(401, "Email not found")
+		return
 	}
-	
-	token, err := CreateToken(user.ID)
+
+	if tempUser.Password != jsonData.Password {
+		c.JSON(http.StatusUnauthorized, "Invalid password")
+		return
+	}
+
+	token, err := CreateToken(tempUser.ID)
 	if err != nil {
-	   c.JSON(http.StatusUnprocessableEntity, err.Error())
-	   return
+		c.JSON(http.StatusUnprocessableEntity, err.Error())
+		return
 	}
 	expireCookie := time.Now().Add(time.Minute * 15).Unix()
 	c.SetCookie("token", token, int(expireCookie), "/", "localhost", false, true)
-	c.JSON(http.StatusOK, "Logged in")
+	c.JSON(200, "Logged in")
 }
- 
-func registerUser(c *gin.Context) {
 
+// RegisterUser checks if user exists, if not creates new user
+func RegisterUser(c *gin.Context) {
+	var jsonData models.User
+	if c.BindJSON(&jsonData) != nil {
+		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		return
+	}
+	fmt.Println(jsonData)
+
+	if jsonData.Email == "" || jsonData.Name == "" || jsonData.Password == "" {
+		c.JSON(400, "Missing parameters")
+		return
+	}
+
+	tempUser := models.User{}
+	res := models.DB.Select("*").Where("email = ?", jsonData.Email).First(&tempUser)
+
+	if res.RowsAffected != 0 {
+		c.JSON(http.StatusUnauthorized, "Email already in use")
+		return
+	}
+
+	newUser := models.User{Name: jsonData.Name, Email: jsonData.Email, Password: jsonData.Password}
+	models.DB.Create(&newUser)
+	c.JSON(200, "Account created")
 }
