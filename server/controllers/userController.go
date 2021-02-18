@@ -82,12 +82,12 @@ func LoginUser(c *gin.Context) {
 	res := models.DB.Select("*").Where("email = ?", jsonData.Email).First(&tempUser)
 
 	if res.RowsAffected == 0 {
-		c.JSON(401, "Email not found")
+		c.JSON(400, "Email not found")
 		return
 	}
 
 	if tempUser.Password != jsonData.Password {
-		c.JSON(http.StatusUnauthorized, "Invalid password")
+		c.JSON(400, "Invalid password")
 		return
 	}
 
@@ -98,7 +98,7 @@ func LoginUser(c *gin.Context) {
 	}
 	expireCookie := time.Now().Add(time.Minute * 15).Unix()
 	c.SetCookie("token", token, int(expireCookie), "/", "localhost", false, true)
-	c.JSON(200, "Logged in")
+	c.JSON(200, "success")
 }
 
 // RegisterUser checks if user exists, if not creates new user
