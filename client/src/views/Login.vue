@@ -35,7 +35,7 @@ export default {
                 email: this.email,
                 password: this.password
             }
-            axios.post("http://localhost:2000/user/login", JSON.stringify(user)).then((res) => {
+            axios.post("http://localhost:2000/user/login", JSON.stringify(user), { withCredentials: true }).then((res) => {
                 this.$store.commit('logIn')
                 this.res = res.data
                 this.$router.push({path: '/'})
