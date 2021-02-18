@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"gymgo.com/m/models"
 )
+
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // CreateToken creates a JWT token
 func CreateToken(userid uint) (string, error) {
@@ -115,6 +118,11 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
+	if !isEmailValid(jsonData.Email) {
+		c.JSON(400, "Wrong email format")
+		return
+	}
+
 	tempUser := models.User{}
 	res := models.DB.Select("*").Where("email = ?", jsonData.Email).First(&tempUser)
 
@@ -126,4 +134,11 @@ func RegisterUser(c *gin.Context) {
 	newUser := models.User{Name: jsonData.Name, Email: jsonData.Email, Password: jsonData.Password}
 	models.DB.Create(&newUser)
 	c.JSON(200, "Account created")
+}
+
+func isEmailValid(e string) bool {
+	if len(e) < 3 && len(e) > 254 {
+		return false
+	}
+	return emailRegex.MatchString(e)
 }
