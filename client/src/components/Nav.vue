@@ -1,5 +1,5 @@
 <template>
-    <div class="w-100 h-8 flex justify-center items-center my-6">
+    <div class="h-28 absolute flex justify-center items-center w-full text-white">
         <ul class="flex">
             <router-link class="mx-3" to="/">Home</router-link>
             <router-link class="mx-3" to="/login">Login</router-link>

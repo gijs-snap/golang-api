@@ -1,18 +1,18 @@
 <template>
-  <div class="w-100 flex justify-center items-center bg-red-500">
-    <div>
+  <div class="w-100 h-screen flex justify-center items-center text-white">
+    <div class="rounded-lg px-3 py-3">
       <div class="text-center">
-        <h1>Register</h1>
+        <h1 class="text-2xl">Register</h1>
       </div>
 
       <form @submit.prevent="registerUser" class="my-3 grid grid-cols-1 text-center">
         <label>Name</label>
-        <input v-model="name"/>
+        <input class="text-black" v-model="name"/>
         <label>Email</label>
-        <input v-model="email"/>
+        <input class="text-black" v-model="email"/>
         <label>Password</label>
-        <input v-model="password"/>
-        <button class="bg-yellow-500 my-3" type="submit">Submit</button>
+        <input class="text-black" v-model="password"/>
+        <button class="border rounded-lg my-3" type="submit">Submit</button>
       </form>
       <div v-if="res != ''"> 
           {{res}}

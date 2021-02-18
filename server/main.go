@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
+	"github.com/gijs-snap/golang-api/controllers"
+	"github.com/gijs-snap/golang-api/models"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"gymgo.com/m/controllers"
-	"gymgo.com/m/models"
 )
 
 func init() {
@@ -37,6 +37,11 @@ func main() {
 	r.Use(CORSMiddleware())
 
 	models.ConnectDatabase()
+
+	// session := models.Session{SessionDate: time.Now(), Duration: 60}
+	// excercise := models.Excercise{Name: "Squats", Weight: 5, Session: 1}
+	// result := DB.Create(&excercise)
+	// anotherResult := DB.create(&session)
 	r.POST("/user/login", controllers.LoginUser)
 	r.POST("/user/register", controllers.RegisterUser)
 	r.GET("/excercises", controllers.FindExcercises)

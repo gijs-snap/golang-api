@@ -1,16 +1,16 @@
 <template>
-  <div class="w-100 flex justify-center items-center bg-red-500">
+  <div class="w-100 h-screen flex justify-center items-center text-white">
     <div>
       <div class="text-center">
-        <h1>Login</h1>
+        <h1 class="text-2xl">Login</h1>
       </div>
 
       <form class="my-3 grid grid-cols-1 text-center" @submit.prevent="loginUser">
         <label>Email</label>
-        <input v-model="email"/>
+        <input class="text-black" v-model="email"/>
         <label >Password</label>
-        <input v-model="password" />
-        <button class="bg-yellow-500 my-3" type="submit">Submit</button>
+        <input class="text-black" type="password" v-model="password" />
+        <button class="border rounded-lg my-3" type="submit">Submit</button>
       </form>
       <div v-if="res != ''"> 
           {{res}}

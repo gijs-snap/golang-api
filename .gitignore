@@ -25,3 +25,7 @@
 *.njsproj
 *.sln
 *.sw?
+
+/server/vendor
+/server/golang-api
+/server/makefile

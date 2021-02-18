@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"github.com/gijs-snap/golang-api/models"
 	"github.com/gin-gonic/gin"
-	"gymgo.com/m/models"
 )
 
 // CreateSession creates a new session record in db
