@@ -36,14 +36,16 @@ export default {
                 password: this.password
             }
             axios.post("http://localhost:2000/user/login", JSON.stringify(user), { withCredentials: true }).then((res) => {
-                this.$store.commit('logIn', res.data.token, res.data.user)
+                const payload = {
+                  token: res.data.token,
+                  user: res.data.user
+                }
+                this.$store.commit('logIn', payload)
                 this.res = res.data
-                console.log(res.data)
                 this.$router.push({path: '/'})
             }).catch(err => {
                 this.res = err.message
             })
-            console.log(this.$store.state)
         }
     }
 }

@@ -1,6 +1,6 @@
 <template>
     <div class="w-100 h-screen flex justify-center items-center text-white">
-        
+        {{this.$store.state}}
     </div>
 </template>
 
