@@ -9,10 +9,10 @@ const store = createStore({
       }
     },
     mutations: {
-      logIn (state, token, user) {
+      logIn (state, payload) {
         state.loggedIn = true
-        state.token = token
-        state.user = user
+        state.token = payload.token
+        state.user = payload.user
       },
       logOut (state) {
         state.loggedIn = false

@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gijs-snap/golang-api/models"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -89,7 +90,8 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	if tempUser.Password != jsonData.Password {
+	err := bcrypt.CompareHashAndPassword([]byte(tempUser.Password), []byte(jsonData.Password))
+	if err != nil {
 		c.JSON(400, "Invalid password")
 		return
 	}
@@ -101,7 +103,7 @@ func LoginUser(c *gin.Context) {
 	}
 	expireCookie := time.Now().Add(time.Minute * 15).Unix()
 	c.SetCookie("token", token, int(expireCookie), "/", "localhost", false, true)
-	c.JSON(200, "success")
+	c.JSON(200, gin.H{"token": token, "user": tempUser})
 }
 
 // RegisterUser checks if user exists, if not creates new user
@@ -111,7 +113,6 @@ func RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
 	}
-	fmt.Println(jsonData)
 
 	if jsonData.Email == "" || jsonData.Name == "" || jsonData.Password == "" {
 		c.JSON(400, "Missing parameters")
@@ -131,7 +132,15 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	newUser := models.User{Name: jsonData.Name, Email: jsonData.Email, Password: jsonData.Password}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(jsonData.Password), bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(400, "Password hashing failed")
+		return
+	}
+	fmt.Println(string(hashedPassword))
+
+	newUser := models.User{Name: jsonData.Name, Email: jsonData.Email, Password: string(hashedPassword)}
 	models.DB.Create(&newUser)
 	c.JSON(200, "Account created")
 }
